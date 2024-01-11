@@ -6,8 +6,11 @@ import matplotlib.pyplot as plt
 import math
 import seaborn as sns
 from matplotlib.cm import get_cmap
+
+#unzipping dataset
+
 '''
-unzipping dataset
+
 with zipfile.ZipFile("Course-Project\Dataset.zip", 'r') as zip_ref:
     zip_ref.extractall("Course-Project")
 '''
@@ -22,7 +25,8 @@ features_data.head(10)
 stores_data.head(10)
 train_data.head(10)
 
-#Data Exploration
+#Initial Data Exploration
+'''
 
 features_data.describe().T
 features_data.info()
@@ -31,12 +35,17 @@ train_data.info()
 stores_data.describe().T
 stores_data.info()
 
+'''
+
 #checkin Null Values
 
 features_data.isnull().sum()
 stores_data.isnull().sum()
 train_data.isnull().sum()
 
+#Data merging (train,features and store data)
+new_train_df=train_data.merge(features_data,how='left',on=["Store","Date"],indicator=True).merge(stores_data,how='left').copy()
+new_train_df.isnull().sum()
 
 
 
