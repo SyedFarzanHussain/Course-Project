@@ -119,6 +119,15 @@ plt.grid(axis="y", linestyle="--", alpha=0.7)
 plt.title("Box Plot for size of stores")
 plt.show()
 
+#ploting Correlation Matrix
+
+#dropping date and type column to have only numeric values
+corr_data=new_df.drop(columns=["Date","Type"])\
+    .corr()
+plt.figure(figsize=(10, 8))
+sns.heatmap(corr_data,annot=True,fmt=".2f")
+plt.title("Correlation Matrix")
+plt.show() 
 
 
 
