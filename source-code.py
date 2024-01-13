@@ -91,7 +91,7 @@ plt.title('Distribution of Store Type')
 plt.show()
 
 
-#ploting bar chart for count of store type
+#plotting bar chart for count of store type
 
 Store_chart=new_df["Type"].value_counts()\
     .plot(kind='bar',title="Store Types",rot=0)
@@ -99,7 +99,7 @@ Store_chart.set_xlabel("TYPE")
 Store_chart.set_ylabel("COUNT")
 plt.show()
 
-#ploting bar chart for size of store according to their type
+#plotting bar chart for size of store according to their type
 
 Size_plot=stores_data.plot.bar(x="Store",y="Size",
                                color=['green' if data_value=="A" else 'red' if data_value=='B' else 'blue' for data_value in stores_data['Type']],
@@ -119,15 +119,53 @@ plt.grid(axis="y", linestyle="--", alpha=0.7)
 plt.title("Box Plot for size of stores")
 plt.show()
 
-#ploting Correlation Matrix
+#plotting Correlation Matrix
 
 #dropping date and type column to have only numeric values
 corr_data=new_df.drop(columns=["Date","Type"])\
     .corr()
 plt.figure(figsize=(10, 8))
-sns.heatmap(corr_data,annot=True,fmt=".2f")
+sns.heatmap(corr_data,annot=True,fmt=".2f") #making heat map from correlation matrix obtained
 plt.title("Correlation Matrix")
 plt.show() 
+
+#bar plot to check fuel prices over the years
+sns.barplot(x="Year", y="Fuel_Price",data=new_df)
+plt.title("Yearly Fuel Prices")
+plt.show()
+
+#bar plot to check weekly sales on each store
+
+plt.figure(figsize=(15, 8))
+sns.barplot(x="Store", y="Weekly_Sales", data=new_df, hue="Type",
+            order=new_df.groupby("Store")["Weekly_Sales"].mean().sort_values(ascending=False).index)
+plt.title("Sales on store")
+plt.grid(axis="y", linestyle="--", alpha=0.7)
+plt.ylabel("Average Weekly Sales")
+plt.xticks(rotation=45)  
+plt.show()
+
+#plotting un-eployment rate in each store
+
+plt.figure(figsize=(12, 6))
+sns.lineplot(x="Store",y="Unemployment",data=new_df)
+plt.title("Unemployment Rate")
+plt.grid(axis="x", linestyle="--", alpha=0.7)
+plt.xticks(new_df['Store'].unique())
+plt.show()
+
+#Plotting sales by each department
+
+plt.figure(figsize=(15, 6))
+sns.lineplot(x="Dept",y="Weekly_Sales",data=new_df)
+plt.title("Sales by departments")
+plt.xticks(range(min(new_df['Dept']), max(new_df['Dept'])+1, 4),rotation=45)
+plt.ylabel("Average Weekly Sales")
+
+plt.grid(axis="x", linestyle="--", alpha=0.7)
+plt.show()
+
+
 
 
 
