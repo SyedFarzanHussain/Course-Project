@@ -7,6 +7,11 @@ import math
 import seaborn as sns
 from matplotlib.cm import get_cmap
 import streamlit as st
+import plotly.express as px
+from sklearn import preprocessing
+from sklearn.model_selection import train_test_split  
+from sklearn.metrics import r2_score,mean_squared_error,accuracy_score
+from xgboost import XGBRegressor
 
 #st.title("WALMART SALES DATA ANALYSIS")
 
@@ -165,6 +170,24 @@ plt.ylabel("Average Weekly Sales")
 plt.grid(axis="x", linestyle="--", alpha=0.7)
 plt.show()
 
+#line plot for year wise sales
+plt.figure(figsize=(12, 8))
+sns.lineplot(x="Month",y="Weekly_Sales",data=new_df,hue="Year",palette="deep")
+plt.title("Year wise sales",fontsize=20)
+plt.ylabel("Average Weekly Sales")
+plt.grid(axis="y", linestyle="--", alpha=0.7)
+plt.show()
+
+#box plot for distribution of sales on holdidays and non-holiddays
+plt.figure(figsize=(12, 8))
+sns.boxplot(x="IsHoliday",y="Weekly_Sales",data=new_df)
+plt.title("Holidays vs Non-Holidays",fontsize=20)
+plt.show()
+
+#sunburtst plot for distribution of sales on holdidays and non-holiddays
+sunburst_plot= px.sunburst(new_df, path=['IsHoliday', 'Type'], values='Weekly_Sales')
+sunburst_plot.update_layout(title_text="Holidays vs Non-Holidays: Sales by Store Type")
+sunburst_plot.show()
 
 
 
