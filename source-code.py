@@ -113,7 +113,7 @@ new_test_df['CPI'].fillna(new_test_df['CPI'].mean(),inplace=True)
 new_test_df['Unemployment'].fillna(new_test_df['Unemployment'].mean(),inplace=True)
 
 #feature understanding 
-
+'''
 #ploting pie chart for distribution of store type
 plt.pie(new_df["Type"].value_counts().tolist(),autopct="%1.1f%%",) 
 plt.legend(new_df["Type"].value_counts().keys()) #extracting keys from type column as legends
@@ -213,8 +213,12 @@ plt.show()
 sunburst_plot= px.sunburst(new_df, path=['IsHoliday', 'Type'], values='Weekly_Sales')
 sunburst_plot.update_layout(title_text="Holidays vs Non-Holidays: Sales by Store Type")
 sunburst_plot.show()
+'''
 
 #Machine Learning part
+
+
+new_df2=new_df.copy()#making a copy of dataset for machine learning models
 
 #encoding the columns that has string values 
 label_encoder=preprocessing.LabelEncoder()
@@ -226,7 +230,7 @@ new_test_df["Type"]=label_encoder.fit_transform(new_test_df["Type"])
 
 #dropping Date column from test data
 new_test_df.drop(columns="Date",inplace=True)
-
+'''
 #making correlation matrix again
 corr_=new_df2.columns.tolist()
 corr_.remove("Date")
@@ -236,6 +240,8 @@ sns.heatmap(corr_data2,annot=True,fmt=".2f")
 plt.title("Correlation Matrix")
 plt.show()
 
+'''
+
 #separating features and Target Values
 Features=new_df2.drop(['Weekly_Sales','Date'],axis=1)
 Target=new_df2["Weekly_Sales"]
@@ -243,6 +249,25 @@ Target=new_df2["Weekly_Sales"]
 #separting training and testing set
 x_train, x_test, y_train, y_test= train_test_split(Features, Target, test_size= 0.2, random_state=2)
 
+#using random forest algorithm
+
+rf_model=RandomForestRegressor(n_estimators=50, #no of tress
+    random_state=0,
+    n_jobs=-1,#utilizaing available resources
+    max_depth=50, #maximum dept of each tree
+    max_features='sqrt', #maximum number of features each tree is allowed to use 
+    min_samples_split=5 #minimum samples required for a split 
+    
+)
+
+rf_model.fit(x_train,y_train)
+
+rf_pred=rf_model.predict(x_test)
+
+print("R2 score  :",r2_score(y_test, rf_pred))
+print("MSE score  :",mean_squared_error(y_test, rf_pred))
+print("RMSE:",math.sqrt(mean_squared_error(y_test, rf_pred)))
+print("mean_absolute_error:",mean_absolute_error(y_test, rf_pred))
 
 
 
