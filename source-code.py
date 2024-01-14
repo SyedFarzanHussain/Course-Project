@@ -10,8 +10,10 @@ import streamlit as st
 import plotly.express as px
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split  
-from sklearn.metrics import r2_score,mean_squared_error,accuracy_score
+from sklearn.metrics import r2_score,mean_squared_error,mean_absolute_error
 from xgboost import XGBRegressor
+from sklearn.ensemble import RandomForestRegressor
+
 
 #st.title("WALMART SALES DATA ANALYSIS")
 
@@ -25,6 +27,8 @@ with zipfile.ZipFile("Course-Project\Dataset.zip", 'r') as zip_ref:
 features_data=pd.read_csv("features.csv")
 stores_data=pd.read_csv("stores.csv")
 train_data=pd.read_csv("train.csv")
+test_data=pd.read_csv("test.csv")
+
 
 #checking the value in the data
 
@@ -52,6 +56,8 @@ train_data.isnull().sum()
 #Data merging (train,features and store data)
 new_train_df=train_data.merge(features_data,how='left',on=["Store","Date"],indicator=True).merge(stores_data,how='left').copy()
 new_train_df.isnull().sum()
+new_test_df=test_data.merge(features_data,how='left',on=["Store","Date"],indicator=True).merge(stores_data,how='left').copy()
+new_test_df.isnull().sum()
 
 #lambda function to check the percentage of null values
 comment3='''
@@ -66,12 +72,21 @@ null_percent_check("MarkDown4")
 new_train_df.drop(new_train_df.columns[new_train_df.columns.get_loc("MarkDown1"):new_train_df.columns.get_loc("MarkDown5")+1],axis=1,inplace=True)
 #print(new_train_df.columns)
 
+# dropping from test set as well
+new_test_df.drop(new_test_df.columns[new_test_df.columns.get_loc("MarkDown1"):new_test_df.columns.get_loc("MarkDown5")+1],axis=1,inplace=True)
+
+
 #Dropping extra columns after merge
 new_train_df.drop(['IsHoliday_y','_merge'], axis=1,inplace=True)
 #print(new_train_df.columns) 
 
+new_test_df.drop(['IsHoliday_y','_merge'], axis=1,inplace=True)
+#new_test_df.columns
+
 #renaming the Holiday column
 new_train_df.rename(columns={"IsHoliday_x":"IsHoliday"},inplace=True)
+new_test_df.rename(columns={"IsHoliday_x":"IsHoliday"},inplace=True)
+#print(new_test_df.columns)
 #print(new_train_df.columns) 
 
 #checking the count of negative values in sales
@@ -81,11 +96,17 @@ new_train_df.rename(columns={"IsHoliday_x":"IsHoliday"},inplace=True)
 new_df=new_train_df[new_train_df['Weekly_Sales']>0].copy()
 
 new_df["Date"]=pd.to_datetime(new_df['Date']) #convert date column into proper date time column
+new_test_df["Date"]=pd.to_datetime(new_test_df['Date']) #convert date column into proper date time column
+
 
 #separting date columns into week, month and year 
 new_df["Week"] = new_df["Date"].dt.isocalendar().week
 new_df["Month"] = new_df["Date"].dt.month
 new_df["Year"] = new_df["Date"].dt.year
+
+new_test_df["Week"] = new_test_df["Date"].dt.isocalendar().week
+new_test_df["Month"] = new_test_df["Date"].dt.month
+new_test_df["Year"] = new_test_df["Date"].dt.year
 
 #feature understanding 
 
