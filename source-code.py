@@ -108,6 +108,10 @@ new_test_df["Week"] = new_test_df["Date"].dt.isocalendar().week
 new_test_df["Month"] = new_test_df["Date"].dt.month
 new_test_df["Year"] = new_test_df["Date"].dt.year
 
+#filling null values with mean of that column
+new_test_df['CPI'].fillna(new_test_df['CPI'].mean(),inplace=True)
+new_test_df['Unemployment'].fillna(new_test_df['Unemployment'].mean(),inplace=True)
+
 #feature understanding 
 
 #ploting pie chart for distribution of store type
@@ -209,6 +213,35 @@ plt.show()
 sunburst_plot= px.sunburst(new_df, path=['IsHoliday', 'Type'], values='Weekly_Sales')
 sunburst_plot.update_layout(title_text="Holidays vs Non-Holidays: Sales by Store Type")
 sunburst_plot.show()
+
+#Machine Learning part
+
+#encoding the columns that has string values 
+label_encoder=preprocessing.LabelEncoder()
+new_df2["IsHoliday"]=label_encoder.fit_transform(new_df2["IsHoliday"])
+new_df2["Type"]=label_encoder.fit_transform(new_df2["Type"])
+
+new_test_df["IsHoliday"]=label_encoder.fit_transform(new_test_df["IsHoliday"])
+new_test_df["Type"]=label_encoder.fit_transform(new_test_df["Type"])
+
+#dropping Date column from test data
+new_test_df.drop(columns="Date",inplace=True)
+
+#making correlation matrix again
+corr_=new_df2.columns.tolist()
+corr_.remove("Date")
+corr_data2=new_df2[corr_].corr()
+plt.figure(figsize=(10, 8))
+sns.heatmap(corr_data2,annot=True,fmt=".2f")
+plt.title("Correlation Matrix")
+plt.show()
+
+#separating features and Target Values
+Features=new_df2.drop(['Weekly_Sales','Date'],axis=1)
+Target=new_df2["Weekly_Sales"]
+
+#separting training and testing set
+x_train, x_test, y_train, y_test= train_test_split(Features, Target, test_size= 0.2, random_state=2)
 
 
 
