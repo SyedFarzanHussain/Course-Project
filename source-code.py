@@ -264,13 +264,31 @@ rf_model.fit(x_train,y_train)
 
 rf_pred=rf_model.predict(x_test)
 
+'''
 print("R2 score  :",r2_score(y_test, rf_pred))
-print("MSE score  :",mean_squared_error(y_test, rf_pred))
 print("RMSE:",math.sqrt(mean_squared_error(y_test, rf_pred)))
 print("mean_absolute_error:",mean_absolute_error(y_test, rf_pred))
+'''
 
 
+#applying XGBoost Algorithm
 
+model = XGBRegressor(early_stopping_rounds=50)
+model.fit(x_train,y_train,eval_set=[(x_train,y_train),(x_test,y_test)],verbose=100)
+xgb_pred1=model.predict(x_test)
+
+print("R2 score  :",r2_score(y_test, xgb_pred1))
+print("RMSE:",math.sqrt(mean_squared_error(y_test, xgb_pred1)))
+print("mean_absolute_error:",mean_absolute_error(y_test, xgb_pred1))
+
+'''
+#feature importance bar chart
+plt.barh(Features.columns, model.feature_importances_)
+plt.title("Feautre Importance")
+plt.xlabel("Importance")
+plt.ylabel("Features")
+plt.show()
+'''
 
 
 
