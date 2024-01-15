@@ -170,99 +170,137 @@ else:
         st.empty()
    
     
+def distribution_store_type():
+     
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+
+    # Plotting pie chart for distribution of store type
+    axs[0].pie(new_df["Type"].value_counts().tolist(), autopct="%1.1f%%", labels=new_df["Type"].value_counts().keys())
+    axs[0].set_title('Distribution of Store Type')
+
+    # Box Plot for distribution of size of stores
+    sns.boxplot(x="Type", y="Size", data=new_df, ax=axs[1])
+    axs[1].grid(axis="y", linestyle="--", alpha=0.7)
+    axs[1].set_title("Box Plot for Size of Stores")
+
+    # Adjust layout to prevent clipping of titles
+    plt.tight_layout()
+    st.pyplot()
+
+def plot_store_count():
+     
+    #plotting bar chart for count of store type
+    Store_chart=new_df["Type"].value_counts().plot(kind='bar',title="Store Types",rot=0)
+    Store_chart.set_xlabel("TYPE")
+    Store_chart.set_ylabel("COUNT")
+    st.pyplot()
 
 
+def plot_store_size():
 
-#ploting pie chart for distribution of store type
-plt.pie(new_df["Type"].value_counts().tolist(),autopct="%1.1f%%",) 
-plt.legend(new_df["Type"].value_counts().keys()) #extracting keys from type column as legends
-plt.title('Distribution of Store Type')
+    #plotting bar chart for size of store according to their type
+
+    Size_plot=stores_data.plot.bar(x="Store",y="Size",
+                                color=['green' if data_value=="A" else 'red' if data_value=='B' else 'blue' for data_value in stores_data['Type']],
+                                rot=0,figsize=(13, 5))
+
+    legend_labels = {'green': 'A', 'red': 'B', 'blue': 'C'} #dictionary for creating colored legends
+    legend_handles = [plt.Rectangle((0, 0), 1, 1, color=color) for color in legend_labels.keys()] #making rectangle for store stype according to color
+
+    plt.legend(legend_handles, legend_labels.values(), title='Store Type', loc='upper right')
+    plt.title("Size of Stores")
+    st.pyplot()
+
+def plot_yearly_fuel():
+
+    #bar plot to check fuel prices over the years
+    sns.barplot(x="Year", y="Fuel_Price",data=new_df)
+    plt.title("Yearly Fuel Prices")
+    st.pyplot()
 
 
+def plot_weeklysales():
+    fig2, axs1 = plt.subplots(1, 2, figsize=(18, 6))
 
+    # Plotting bar plot for sales on each store
+    sns.barplot(x="Store", y="Weekly_Sales", data=new_df, hue="Type",
+                order=new_df.groupby("Store")["Weekly_Sales"].mean().sort_values(ascending=False).index,
+                ax=axs[0])
+    axs1[0].set_title("Sales on Each Store")
+    axs1[0].grid(axis="y", linestyle="--", alpha=0.7)
+    axs1[0].set_ylabel("Average Weekly Sales")
+    axs1[0].tick_params(axis='x', rotation=45)
 
-#plotting bar chart for count of store type
+    # Plotting line plot for sales by each department
+    sns.lineplot(x="Dept", y="Weekly_Sales", data=new_df, ax=axs[1])
+    axs1[1].set_title("Sales by Departments")
+    axs1[1].set_xticks(range(min(new_df['Dept']), max(new_df['Dept']) + 1, 4))
+    axs1[1].set_xticklabels(range(min(new_df['Dept']), max(new_df['Dept']) + 1, 4), rotation=45)
+    axs1[1].set_ylabel("Average Weekly Sales")
+    axs1[1].grid(axis="x", linestyle="--", alpha=0.7)
+    
+    plt.tight_layout()
+    st.pyplot()
 
-# Store_chart=new_df["Type"].value_counts()\
-#     .plot(kind='bar',title="Store Types",rot=0)
-# Store_chart.set_xlabel("TYPE")
-# Store_chart.set_ylabel("COUNT")
-# plt.show()
+def plot_unemployement():
 
-#plotting bar chart for size of store according to their type
+    #plotting un-employment rate in each store
 
-# Size_plot=stores_data.plot.bar(x="Store",y="Size",
-#                                color=['green' if data_value=="A" else 'red' if data_value=='B' else 'blue' for data_value in stores_data['Type']],
-#                                rot=0,figsize=(13, 5))
+    plt.figure(figsize=(12, 6))
+    sns.lineplot(x="Store",y="Unemployment",data=new_df)
+    plt.title("Unemployment Rate")
+    plt.grid(axis="x", linestyle="--", alpha=0.7)
+    plt.xticks(new_df['Store'].unique())
+    st.pyplot()
 
-# legend_labels = {'green': 'A', 'red': 'B', 'blue': 'C'} #dictionary for creating colored legends
-# legend_handles = [plt.Rectangle((0, 0), 1, 1, color=color) for color in legend_labels.keys()] #making rectangle for store stype according to color
+def plot_year_sales():
 
-# plt.legend(legend_handles, legend_labels.values(), title='Store Type', loc='upper right')
-# plt.title("Size of Stores")
-# plt.show()
+    #line plot for year wise sales
+    plt.figure(figsize=(12, 8))
+    sns.lineplot(x="Month",y="Weekly_Sales",data=new_df,hue="Year",palette="deep")
+    plt.title("Year wise sales",fontsize=20)
+    plt.ylabel("Average Weekly Sales")
+    plt.grid(axis="y", linestyle="--", alpha=0.7)
+    st.pyplot()
 
-#Box Plot for distribution of size of stores
+def plot_holiday_sales():
 
-# sns.boxplot(x="Type",y="Size",data=stores_data)
-# plt.grid(axis="y", linestyle="--", alpha=0.7)
-# plt.title("Box Plot for size of stores")
-# plt.show()
+    #box plot for distribution of sales on holdidays and non-holiddays
+    plt.figure(figsize=(12, 8))
+    sns.boxplot(x="IsHoliday",y="Weekly_Sales",data=new_df)
+    plt.title("Holidays vs Non-Holidays",fontsize=20)
+    st.pyplot()
 
-#bar plot to check fuel prices over the years
-# sns.barplot(x="Year", y="Fuel_Price",data=new_df)
-# plt.title("Yearly Fuel Prices")
-# plt.show()
+    #sunburtst plot for distribution of sales on holdidays and non-holiddays
+    sunburst_plot= px.sunburst(new_df, path=['IsHoliday', 'Type'], values='Weekly_Sales')
+    sunburst_plot.update_layout(title_text="Holidays vs Non-Holidays: Sales by Store Type")
+    st.pyplot()
 
-#bar plot to check weekly sales on each store
+# Create a dropdown to select the plot
+selected_plot = st.selectbox('Select Plot', ['Distribution of Store Type', 'Store Count', 'Store Size', 'Yearly Fuel Prices',
+                                             'Weekly Sales', 'Unemployment Rate', 'Year Wise Sales', 'Holiday Sales'])
 
-# plt.figure(figsize=(15, 8))
-# sns.barplot(x="Store", y="Weekly_Sales", data=new_df, hue="Type",
-#             order=new_df.groupby("Store")["Weekly_Sales"].mean().sort_values(ascending=False).index)
-# plt.title("Sales on store")
-# plt.grid(axis="y", linestyle="--", alpha=0.7)
-# plt.ylabel("Average Weekly Sales")
-# plt.xticks(rotation=45)  
-# plt.show()
+plot_button1 = st.button('Plot')
 
-#plotting un-eployment rate in each store
+if plot_button1:
+     
+    if selected_plot == 'Distribution of Store Type':
+        distribution_store_type()
+    elif selected_plot == 'Store Count':
+        plot_store_count()
+    elif selected_plot == 'Store Size':
+        plot_store_size()
+    elif selected_plot == 'Yearly Fuel Prices':
+        plot_yearly_fuel()
+    elif selected_plot == 'Weekly Sales':
+        plot_weeklysales()
+    elif selected_plot == 'Unemployment Rate':
+        plot_unemployement()
+    elif selected_plot == 'Year Wise Sales':
+        plot_year_sales()
+    elif selected_plot == 'Holiday Sales':
+        plot_holiday_sales()
 
-# plt.figure(figsize=(12, 6))
-# sns.lineplot(x="Store",y="Unemployment",data=new_df)
-# plt.title("Unemployment Rate")
-# plt.grid(axis="x", linestyle="--", alpha=0.7)
-# plt.xticks(new_df['Store'].unique())
-# plt.show()
-
-#Plotting sales by each department
-
-# plt.figure(figsize=(15, 6))
-# sns.lineplot(x="Dept",y="Weekly_Sales",data=new_df)
-# plt.title("Sales by departments")
-# plt.xticks(range(min(new_df['Dept']), max(new_df['Dept'])+1, 4),rotation=45)
-# plt.ylabel("Average Weekly Sales")
-
-# plt.grid(axis="x", linestyle="--", alpha=0.7)
-# plt.show()
-
-#line plot for year wise sales
-# plt.figure(figsize=(12, 8))
-# sns.lineplot(x="Month",y="Weekly_Sales",data=new_df,hue="Year",palette="deep")
-# plt.title("Year wise sales",fontsize=20)
-# plt.ylabel("Average Weekly Sales")
-# plt.grid(axis="y", linestyle="--", alpha=0.7)
-# plt.show()
-
-#box plot for distribution of sales on holdidays and non-holiddays
-# plt.figure(figsize=(12, 8))
-# sns.boxplot(x="IsHoliday",y="Weekly_Sales",data=new_df)
-# plt.title("Holidays vs Non-Holidays",fontsize=20)
-# plt.show()
-
-#sunburtst plot for distribution of sales on holdidays and non-holiddays
-# sunburst_plot= px.sunburst(new_df, path=['IsHoliday', 'Type'], values='Weekly_Sales')
-# sunburst_plot.update_layout(title_text="Holidays vs Non-Holidays: Sales by Store Type")
-# sunburst_plot.show()
 
 
 #Machine Learning part
