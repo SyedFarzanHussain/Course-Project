@@ -14,14 +14,20 @@ from sklearn.metrics import r2_score,mean_squared_error,mean_absolute_error
 from xgboost import XGBRegressor
 from sklearn.ensemble import RandomForestRegressor
 
+st.set_option('deprecation.showPyplotGlobalUse', False) #do not show warning when plotting on streamlit
 
-#st.title("WALMART SALES DATA ANALYSIS")
+
+st.title("WALMART SALES DATA ANALYSIS")
+
+st.subheader("ABOUT PROJECT")
+st.write("In this project, an analysis was conducted on the weekly sales data of 45 Walmart stores spanning the years 2010 to 2013. The initial phase involved exploratory data analysis to discern relationships among various features. Subsequently, sales forecasting techniques were employed to predict future values based on the insights gained from the exploratory analysis")
+
+
 
 #unzipping dataset
-comment2='''
-with zipfile.ZipFile("Course-Project\Dataset.zip", 'r') as zip_ref:
-    zip_ref.extractall("Course-Project")
-'''
+
+# with zipfile.ZipFile("Course-Project\Dataset.zip", 'r') as zip_ref:
+#     zip_ref.extractall("Course-Project")
 
 #reading the dataset
 features_data=pd.read_csv("features.csv")
@@ -32,26 +38,26 @@ test_data=pd.read_csv("test.csv")
 
 #checking the value in the data
 
-features_data.head(10)
-stores_data.head(10)
-train_data.head(10)
+# features_data.head(10)
+# stores_data.head(10)
+# train_data.head(10)
 
 #Initial Data Exploration
 
-comment1= '''
-features_data.describe().T
-features_data.info()
-train_data.describe().T
-train_data.info()
-stores_data.describe().T
-stores_data.info()
-'''
+
+# features_data.describe().T
+# features_data.info()
+# train_data.describe().T
+# train_data.info()
+# stores_data.describe().T
+# stores_data.info()
+
 
 #checkin Null Values
 
-features_data.isnull().sum()
-stores_data.isnull().sum()
-train_data.isnull().sum()
+# features_data.isnull().sum()
+# stores_data.isnull().sum()
+# train_data.isnull().sum()
 
 #Data merging (train,features and store data)
 new_train_df=train_data.merge(features_data,how='left',on=["Store","Date"],indicator=True).merge(stores_data,how='left').copy()
@@ -60,13 +66,13 @@ new_test_df=test_data.merge(features_data,how='left',on=["Store","Date"],indicat
 new_test_df.isnull().sum()
 
 #lambda function to check the percentage of null values
-comment3='''
-null_percent_check=lambda x:print(f"The null percentage of {x} is {(new_train_df[x].isnull().sum()/new_train_df.shape[0])*100}")
-null_percent_check("MarkDown1")
-null_percent_check("MarkDown2")
-null_percent_check("MarkDown3")
-null_percent_check("MarkDown4")
-'''
+
+# null_percent_check=lambda x:print(f"The null percentage of {x} is {(new_train_df[x].isnull().sum()/new_train_df.shape[0])*100}")
+# null_percent_check("MarkDown1")
+# null_percent_check("MarkDown2")
+# null_percent_check("MarkDown3")
+# null_percent_check("MarkDown4")
+
 
 #The null percentages are more than 60% and these are promotional offers so we can drop these columns.
 new_train_df.drop(new_train_df.columns[new_train_df.columns.get_loc("MarkDown1"):new_train_df.columns.get_loc("MarkDown5")+1],axis=1,inplace=True)
@@ -112,183 +118,246 @@ new_test_df["Year"] = new_test_df["Date"].dt.year
 new_test_df['CPI'].fillna(new_test_df['CPI'].mean(),inplace=True)
 new_test_df['Unemployment'].fillna(new_test_df['Unemployment'].mean(),inplace=True)
 
+if 'show_data' not in st.session_state:
+    st.session_state.show_data = False
+
+# Create a button to toggle the sidebar
+toggle_sidebar = st.sidebar.button('Train Data Head')
+
+# Use the button state to toggle the sidebar
+if toggle_sidebar:
+    # Toggle the show_matrix variable
+    st.session_state.show_data = not st.session_state.show_data
+    # Display the correlation matrix plot if the button is pressed
+    if st.session_state.show_data:
+        st.subheader("Training Data Head")
+        st.table(new_df.head())
+      
+else:
+        # If button is not pressed, clear the sidebar content
+        st.empty()
+
+st.subheader("FEATURE UNDERSTANDING")
+st.write("Several features need to be plotted to comprehend their interrelationships.")
+
 #feature understanding 
-'''
+
+# Initialize session state
+if 'show_matrix' not in st.session_state:
+    st.session_state.show_matrix = False
+
+# Create a button to toggle the sidebar
+toggle_sidebar = st.sidebar.button('Feature Correlation')
+
+# Use the button state to toggle the sidebar
+if toggle_sidebar:
+    # Toggle the show_matrix variable
+    st.session_state.show_matrix = not st.session_state.show_matrix
+    # Display the correlation matrix plot if the button is pressed
+    if st.session_state.show_matrix:
+        # Plotting Correlation Matrix
+        corr_data = new_df.drop(columns=["Date", "Type"]).corr()
+
+        # Create a Matplotlib plot
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(corr_data, annot=True, fmt=".2f")
+        plt.title("Correlation Matrix")
+
+        # Display the plot in the sidebar
+        st.pyplot()
+else:
+        # If button is not pressed, clear the sidebar content
+        st.empty()
+   
+    
+
+
+
 #ploting pie chart for distribution of store type
 plt.pie(new_df["Type"].value_counts().tolist(),autopct="%1.1f%%",) 
 plt.legend(new_df["Type"].value_counts().keys()) #extracting keys from type column as legends
 plt.title('Distribution of Store Type')
-plt.show()
+
+
 
 
 #plotting bar chart for count of store type
 
-Store_chart=new_df["Type"].value_counts()\
-    .plot(kind='bar',title="Store Types",rot=0)
-Store_chart.set_xlabel("TYPE")
-Store_chart.set_ylabel("COUNT")
-plt.show()
+# Store_chart=new_df["Type"].value_counts()\
+#     .plot(kind='bar',title="Store Types",rot=0)
+# Store_chart.set_xlabel("TYPE")
+# Store_chart.set_ylabel("COUNT")
+# plt.show()
 
 #plotting bar chart for size of store according to their type
 
-Size_plot=stores_data.plot.bar(x="Store",y="Size",
-                               color=['green' if data_value=="A" else 'red' if data_value=='B' else 'blue' for data_value in stores_data['Type']],
-                               rot=0,figsize=(13, 5))
+# Size_plot=stores_data.plot.bar(x="Store",y="Size",
+#                                color=['green' if data_value=="A" else 'red' if data_value=='B' else 'blue' for data_value in stores_data['Type']],
+#                                rot=0,figsize=(13, 5))
 
-legend_labels = {'green': 'A', 'red': 'B', 'blue': 'C'} #dictionary for creating colored legends
-legend_handles = [plt.Rectangle((0, 0), 1, 1, color=color) for color in legend_labels.keys()] #making rectangle for store stype according to color
+# legend_labels = {'green': 'A', 'red': 'B', 'blue': 'C'} #dictionary for creating colored legends
+# legend_handles = [plt.Rectangle((0, 0), 1, 1, color=color) for color in legend_labels.keys()] #making rectangle for store stype according to color
 
-plt.legend(legend_handles, legend_labels.values(), title='Store Type', loc='upper right')
-plt.title("Size of Stores")
-plt.show()
+# plt.legend(legend_handles, legend_labels.values(), title='Store Type', loc='upper right')
+# plt.title("Size of Stores")
+# plt.show()
 
 #Box Plot for distribution of size of stores
 
-sns.boxplot(x="Type",y="Size",data=stores_data)
-plt.grid(axis="y", linestyle="--", alpha=0.7)
-plt.title("Box Plot for size of stores")
-plt.show()
-
-#plotting Correlation Matrix
-
-#dropping date and type column to have only numeric values
-corr_data=new_df.drop(columns=["Date","Type"])\
-    .corr()
-plt.figure(figsize=(10, 8))
-sns.heatmap(corr_data,annot=True,fmt=".2f") #making heat map from correlation matrix obtained
-plt.title("Correlation Matrix")
-plt.show() 
+# sns.boxplot(x="Type",y="Size",data=stores_data)
+# plt.grid(axis="y", linestyle="--", alpha=0.7)
+# plt.title("Box Plot for size of stores")
+# plt.show()
 
 #bar plot to check fuel prices over the years
-sns.barplot(x="Year", y="Fuel_Price",data=new_df)
-plt.title("Yearly Fuel Prices")
-plt.show()
+# sns.barplot(x="Year", y="Fuel_Price",data=new_df)
+# plt.title("Yearly Fuel Prices")
+# plt.show()
 
 #bar plot to check weekly sales on each store
 
-plt.figure(figsize=(15, 8))
-sns.barplot(x="Store", y="Weekly_Sales", data=new_df, hue="Type",
-            order=new_df.groupby("Store")["Weekly_Sales"].mean().sort_values(ascending=False).index)
-plt.title("Sales on store")
-plt.grid(axis="y", linestyle="--", alpha=0.7)
-plt.ylabel("Average Weekly Sales")
-plt.xticks(rotation=45)  
-plt.show()
+# plt.figure(figsize=(15, 8))
+# sns.barplot(x="Store", y="Weekly_Sales", data=new_df, hue="Type",
+#             order=new_df.groupby("Store")["Weekly_Sales"].mean().sort_values(ascending=False).index)
+# plt.title("Sales on store")
+# plt.grid(axis="y", linestyle="--", alpha=0.7)
+# plt.ylabel("Average Weekly Sales")
+# plt.xticks(rotation=45)  
+# plt.show()
 
 #plotting un-eployment rate in each store
 
-plt.figure(figsize=(12, 6))
-sns.lineplot(x="Store",y="Unemployment",data=new_df)
-plt.title("Unemployment Rate")
-plt.grid(axis="x", linestyle="--", alpha=0.7)
-plt.xticks(new_df['Store'].unique())
-plt.show()
+# plt.figure(figsize=(12, 6))
+# sns.lineplot(x="Store",y="Unemployment",data=new_df)
+# plt.title("Unemployment Rate")
+# plt.grid(axis="x", linestyle="--", alpha=0.7)
+# plt.xticks(new_df['Store'].unique())
+# plt.show()
 
 #Plotting sales by each department
 
-plt.figure(figsize=(15, 6))
-sns.lineplot(x="Dept",y="Weekly_Sales",data=new_df)
-plt.title("Sales by departments")
-plt.xticks(range(min(new_df['Dept']), max(new_df['Dept'])+1, 4),rotation=45)
-plt.ylabel("Average Weekly Sales")
+# plt.figure(figsize=(15, 6))
+# sns.lineplot(x="Dept",y="Weekly_Sales",data=new_df)
+# plt.title("Sales by departments")
+# plt.xticks(range(min(new_df['Dept']), max(new_df['Dept'])+1, 4),rotation=45)
+# plt.ylabel("Average Weekly Sales")
 
-plt.grid(axis="x", linestyle="--", alpha=0.7)
-plt.show()
+# plt.grid(axis="x", linestyle="--", alpha=0.7)
+# plt.show()
 
 #line plot for year wise sales
-plt.figure(figsize=(12, 8))
-sns.lineplot(x="Month",y="Weekly_Sales",data=new_df,hue="Year",palette="deep")
-plt.title("Year wise sales",fontsize=20)
-plt.ylabel("Average Weekly Sales")
-plt.grid(axis="y", linestyle="--", alpha=0.7)
-plt.show()
+# plt.figure(figsize=(12, 8))
+# sns.lineplot(x="Month",y="Weekly_Sales",data=new_df,hue="Year",palette="deep")
+# plt.title("Year wise sales",fontsize=20)
+# plt.ylabel("Average Weekly Sales")
+# plt.grid(axis="y", linestyle="--", alpha=0.7)
+# plt.show()
 
 #box plot for distribution of sales on holdidays and non-holiddays
-plt.figure(figsize=(12, 8))
-sns.boxplot(x="IsHoliday",y="Weekly_Sales",data=new_df)
-plt.title("Holidays vs Non-Holidays",fontsize=20)
-plt.show()
+# plt.figure(figsize=(12, 8))
+# sns.boxplot(x="IsHoliday",y="Weekly_Sales",data=new_df)
+# plt.title("Holidays vs Non-Holidays",fontsize=20)
+# plt.show()
 
 #sunburtst plot for distribution of sales on holdidays and non-holiddays
-sunburst_plot= px.sunburst(new_df, path=['IsHoliday', 'Type'], values='Weekly_Sales')
-sunburst_plot.update_layout(title_text="Holidays vs Non-Holidays: Sales by Store Type")
-sunburst_plot.show()
-'''
+# sunburst_plot= px.sunburst(new_df, path=['IsHoliday', 'Type'], values='Weekly_Sales')
+# sunburst_plot.update_layout(title_text="Holidays vs Non-Holidays: Sales by Store Type")
+# sunburst_plot.show()
+
 
 #Machine Learning part
 
 
-new_df2=new_df.copy()#making a copy of dataset for machine learning models
+# new_df2=new_df.copy()#making a copy of dataset for machine learning models
 
 #encoding the columns that has string values 
-label_encoder=preprocessing.LabelEncoder()
-new_df2["IsHoliday"]=label_encoder.fit_transform(new_df2["IsHoliday"])
-new_df2["Type"]=label_encoder.fit_transform(new_df2["Type"])
+# label_encoder=preprocessing.LabelEncoder()
+# new_df2["IsHoliday"]=label_encoder.fit_transform(new_df2["IsHoliday"])
+# new_df2["Type"]=label_encoder.fit_transform(new_df2["Type"])
 
-new_test_df["IsHoliday"]=label_encoder.fit_transform(new_test_df["IsHoliday"])
-new_test_df["Type"]=label_encoder.fit_transform(new_test_df["Type"])
+# new_test_df["IsHoliday"]=label_encoder.fit_transform(new_test_df["IsHoliday"])
+# new_test_df["Type"]=label_encoder.fit_transform(new_test_df["Type"])
 
-#dropping Date column from test data
-new_test_df.drop(columns="Date",inplace=True)
-'''
+# #dropping Date column from test data
+# new_test_df.drop(columns="Date",inplace=True)
 #making correlation matrix again
-corr_=new_df2.columns.tolist()
-corr_.remove("Date")
-corr_data2=new_df2[corr_].corr()
-plt.figure(figsize=(10, 8))
-sns.heatmap(corr_data2,annot=True,fmt=".2f")
-plt.title("Correlation Matrix")
-plt.show()
-
-'''
+# corr_=new_df2.columns.tolist()
+# corr_.remove("Date")
+# corr_data2=new_df2[corr_].corr()
+# plt.figure(figsize=(10, 8))
+# sns.heatmap(corr_data2,annot=True,fmt=".2f")
+# plt.title("Correlation Matrix")
+# plt.show()
 
 #separating features and Target Values
-Features=new_df2.drop(['Weekly_Sales','Date'],axis=1)
-Target=new_df2["Weekly_Sales"]
+# Features=new_df2.drop(['Weekly_Sales','Date'],axis=1)
+# Target=new_df2["Weekly_Sales"]
 
-#separting training and testing set
-x_train, x_test, y_train, y_test= train_test_split(Features, Target, test_size= 0.2, random_state=2)
+# #separting training and testing set
+# x_train, x_test, y_train, y_test= train_test_split(Features, Target, test_size= 0.2, random_state=2)
 
 #using random forest algorithm
 
-rf_model=RandomForestRegressor(n_estimators=50, #no of tress
-    random_state=0,
-    n_jobs=-1,#utilizaing available resources
-    max_depth=50, #maximum dept of each tree
-    max_features='sqrt', #maximum number of features each tree is allowed to use 
-    min_samples_split=5 #minimum samples required for a split 
+# rf_model=RandomForestRegressor(n_estimators=50, #no of tress
+#     random_state=0,
+#     n_jobs=-1,#utilizaing available resources
+#     max_depth=50, #maximum dept of each tree
+#     max_features='sqrt', #maximum number of features each tree is allowed to use 
+#     min_samples_split=5 #minimum samples required for a split 
     
-)
+# )
 
-rf_model.fit(x_train,y_train)
+# rf_model.fit(x_train,y_train)
 
-rf_pred=rf_model.predict(x_test)
+# rf_pred=rf_model.predict(x_test)
 
-'''
-print("R2 score  :",r2_score(y_test, rf_pred))
-print("RMSE:",math.sqrt(mean_squared_error(y_test, rf_pred)))
-print("mean_absolute_error:",mean_absolute_error(y_test, rf_pred))
-'''
-
+# print("R2 score  :",r2_score(y_test, rf_pred))
+# print("RMSE:",math.sqrt(mean_squared_error(y_test, rf_pred)))
+# print("mean_absolute_error:",mean_absolute_error(y_test, rf_pred))
 
 #applying XGBoost Algorithm
 
-model = XGBRegressor(early_stopping_rounds=50)
-model.fit(x_train,y_train,eval_set=[(x_train,y_train),(x_test,y_test)],verbose=100)
-xgb_pred1=model.predict(x_test)
+# model = XGBRegressor(early_stopping_rounds=50)
+# model.fit(x_train,y_train,eval_set=[(x_train,y_train),(x_test,y_test)],verbose=100)
+# xgb_pred1=model.predict(x_test)
 
-print("R2 score  :",r2_score(y_test, xgb_pred1))
-print("RMSE:",math.sqrt(mean_squared_error(y_test, xgb_pred1)))
-print("mean_absolute_error:",mean_absolute_error(y_test, xgb_pred1))
-
-'''
+# print("R2 score  :",r2_score(y_test, xgb_pred1))
+# print("RMSE:",math.sqrt(mean_squared_error(y_test, xgb_pred1)))
+# print("mean_absolute_error:",mean_absolute_error(y_test, xgb_pred1))
 #feature importance bar chart
-plt.barh(Features.columns, model.feature_importances_)
-plt.title("Feautre Importance")
-plt.xlabel("Importance")
-plt.ylabel("Features")
-plt.show()
-'''
+# plt.barh(Features.columns, model.feature_importances_)
+# plt.title("Feautre Importance")
+# plt.xlabel("Importance")
+# plt.ylabel("Features")
+# plt.show()
 
+# xgb_pred2 = model.predict(new_test_df) #predicting weekly sales for 2013
 
+# new_test_df["Weekly_Sales"]=xgb_pred2 #adding weekly sales to new_test_df
+
+#making extra column on train and test data to generate prediction plots
+# new_df3=new_df.copy()
+# new_df3['YearMonth'] = new_df3['Date'].dt.to_period('M') #making year-month column
+# monthly_sales_train = new_df3.groupby('YearMonth')['Weekly_Sales'].mean() #grouping Year-month with weekly sales
+
+# new_test_df2=new_test_df.copy()
+# new_test_df2["Date"]=test_data["Date"] #adding date column back
+# new_test_df2["Date"]=pd.to_datetime(new_test_df2['Date'])#converting it to date-time
+# new_test_df2['YearMonth'] = new_test_df2['Date'].dt.to_period('M')#making year-month column
+# monthly_sales_test = new_test_df2.groupby('YearMonth')['Weekly_Sales'].mean() #grouping Year-month with weekly sales
+
+# plt.figure(figsize=(12, 8))
+# train_palette = {2010: 'blue', 2011: 'green', 2012: 'red'}
+# test_palette = {2012:'red',2013: 'purple'}
+# sns.lineplot(x="Month", y="Weekly_Sales", data=new_df2, hue="Year", 
+#              palette=train_palette, linewidth=2, errorbar=None)
+# sns.lineplot(x="Month", y="Weekly_Sales", data=new_test_df, hue="Year", 
+#              palette=test_palette, linewidth=3,linestyle='--', errorbar=None)
+# plt.plot([new_df2['Month'].iloc[-1], new_test_df['Month'].iloc[0]], 
+#          [monthly_sales_train["2012-10"], monthly_sales_test["2012-11"]], 
+#          color='red', linestyle='--', linewidth=3)
+# plt.title("Year wise sales(Actual and Prediction)",fontsize=20)
+# plt.ylabel("Average Weekly Sales")
+# plt.grid(axis="y", linestyle="--", alpha=0.7)
+# plt.show()
 
