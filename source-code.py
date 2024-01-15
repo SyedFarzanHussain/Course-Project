@@ -118,11 +118,13 @@ new_test_df["Year"] = new_test_df["Date"].dt.year
 new_test_df['CPI'].fillna(new_test_df['CPI'].mean(),inplace=True)
 new_test_df['Unemployment'].fillna(new_test_df['Unemployment'].mean(),inplace=True)
 
+#initiating streamlit session
+
 if 'show_data' not in st.session_state:
     st.session_state.show_data = False
 
 # Create a button to toggle the sidebar
-toggle_sidebar = st.sidebar.button('Train Data Head')
+toggle_sidebar = st.sidebar.button('Data Head')
 
 # Use the button state to toggle the sidebar
 if toggle_sidebar:
@@ -130,7 +132,7 @@ if toggle_sidebar:
     st.session_state.show_data = not st.session_state.show_data
     # Display the correlation matrix plot if the button is pressed
     if st.session_state.show_data:
-        st.subheader("Training Data Head")
+        st.subheader("Data Head")
         st.table(new_df.head())
       
 else:
@@ -270,11 +272,13 @@ def plot_holiday_sales():
     sns.boxplot(x="IsHoliday",y="Weekly_Sales",data=new_df)
     plt.title("Holidays vs Non-Holidays",fontsize=20)
     st.pyplot()
-
+    
     #sunburtst plot for distribution of sales on holdidays and non-holiddays
     sunburst_plot= px.sunburst(new_df, path=['IsHoliday', 'Type'], values='Weekly_Sales')
     sunburst_plot.update_layout(title_text="Holidays vs Non-Holidays: Sales by Store Type")
-    st.pyplot()
+    st.plotly_chart(sunburst_plot)
+
+ 
 
 # Create a dropdown to select the plot
 selected_plot = st.selectbox('Select Plot', ['Distribution of Store Type', 'Store Count', 'Store Size', 'Yearly Fuel Prices',
@@ -302,22 +306,28 @@ if plot_button1:
         plot_holiday_sales()
 
 
+st.subheader("MODEL TRAINING")
+
+
+
+
 
 #Machine Learning part
 
 
-# new_df2=new_df.copy()#making a copy of dataset for machine learning models
+new_df2=new_df.copy()#making a copy of dataset for machine learning models
 
 #encoding the columns that has string values 
-# label_encoder=preprocessing.LabelEncoder()
-# new_df2["IsHoliday"]=label_encoder.fit_transform(new_df2["IsHoliday"])
-# new_df2["Type"]=label_encoder.fit_transform(new_df2["Type"])
+label_encoder=preprocessing.LabelEncoder()
+new_df2["IsHoliday"]=label_encoder.fit_transform(new_df2["IsHoliday"])
+new_df2["Type"]=label_encoder.fit_transform(new_df2["Type"])
 
-# new_test_df["IsHoliday"]=label_encoder.fit_transform(new_test_df["IsHoliday"])
-# new_test_df["Type"]=label_encoder.fit_transform(new_test_df["Type"])
+new_test_df["IsHoliday"]=label_encoder.fit_transform(new_test_df["IsHoliday"])
+new_test_df["Type"]=label_encoder.fit_transform(new_test_df["Type"])
 
-# #dropping Date column from test data
-# new_test_df.drop(columns="Date",inplace=True)
+#dropping Date column from test data
+new_test_df.drop(columns="Date",inplace=True)
+
 #making correlation matrix again
 # corr_=new_df2.columns.tolist()
 # corr_.remove("Date")
@@ -328,74 +338,115 @@ if plot_button1:
 # plt.show()
 
 #separating features and Target Values
-# Features=new_df2.drop(['Weekly_Sales','Date'],axis=1)
-# Target=new_df2["Weekly_Sales"]
+Features=new_df2.drop(['Weekly_Sales','Date'],axis=1)
+Target=new_df2["Weekly_Sales"]
 
-# #separting training and testing set
-# x_train, x_test, y_train, y_test= train_test_split(Features, Target, test_size= 0.2, random_state=2)
+#separting training and testing set
+x_train, x_test, y_train, y_test= train_test_split(Features, Target, test_size= 0.2, random_state=2)
 
-#using random forest algorithm
-
-# rf_model=RandomForestRegressor(n_estimators=50, #no of tress
-#     random_state=0,
-#     n_jobs=-1,#utilizaing available resources
-#     max_depth=50, #maximum dept of each tree
-#     max_features='sqrt', #maximum number of features each tree is allowed to use 
-#     min_samples_split=5 #minimum samples required for a split 
-    
-# )
-
-# rf_model.fit(x_train,y_train)
-
-# rf_pred=rf_model.predict(x_test)
-
-# print("R2 score  :",r2_score(y_test, rf_pred))
-# print("RMSE:",math.sqrt(mean_squared_error(y_test, rf_pred)))
-# print("mean_absolute_error:",mean_absolute_error(y_test, rf_pred))
+ #using random forest algorithm
+rf_model=RandomForestRegressor(n_estimators=50, #no of tress
+    random_state=0,
+    n_jobs=-1,#utilizaing available resources
+    max_depth=50, #maximum dept of each tree
+    max_features='sqrt', #maximum number of features each tree is allowed to use 
+    min_samples_split=5 #minimum samples required for a split      
+)
 
 #applying XGBoost Algorithm
+model = XGBRegressor(early_stopping_rounds=50)
 
-# model = XGBRegressor(early_stopping_rounds=50)
-# model.fit(x_train,y_train,eval_set=[(x_train,y_train),(x_test,y_test)],verbose=100)
-# xgb_pred1=model.predict(x_test)
+# Create a dropdown to select the plot
+selected_model = st.selectbox('Select Model', ["Random Forest Algorithm","XGBoost Algorithm"])
 
-# print("R2 score  :",r2_score(y_test, xgb_pred1))
-# print("RMSE:",math.sqrt(mean_squared_error(y_test, xgb_pred1)))
-# print("mean_absolute_error:",mean_absolute_error(y_test, xgb_pred1))
-#feature importance bar chart
-# plt.barh(Features.columns, model.feature_importances_)
-# plt.title("Feautre Importance")
-# plt.xlabel("Importance")
-# plt.ylabel("Features")
-# plt.show()
+model_button = st.button('Train')
 
-# xgb_pred2 = model.predict(new_test_df) #predicting weekly sales for 2013
+if model_button:
+    if selected_model == 'Random Forest Algorithm':
+       
+        rf_model.fit(x_train,y_train)
 
-# new_test_df["Weekly_Sales"]=xgb_pred2 #adding weekly sales to new_test_df
+        rf_pred=rf_model.predict(x_test)
 
-#making extra column on train and test data to generate prediction plots
-# new_df3=new_df.copy()
-# new_df3['YearMonth'] = new_df3['Date'].dt.to_period('M') #making year-month column
-# monthly_sales_train = new_df3.groupby('YearMonth')['Weekly_Sales'].mean() #grouping Year-month with weekly sales
+        st.write("R2 score  :",round(r2_score(y_test, rf_pred),2))
+        st.write("RMSE:",round(math.sqrt(mean_squared_error(y_test, rf_pred)),2))
+        st.write("mean_absolute_error:",round(mean_absolute_error(y_test, rf_pred),2))
+        
+        #feature importance bar chart
+        plt.barh(Features.columns, rf_model.feature_importances_)
+        plt.title("Feautre Importance")
+        plt.xlabel("Importance")
+        plt.ylabel("Features")
+        st.pyplot()
 
-# new_test_df2=new_test_df.copy()
-# new_test_df2["Date"]=test_data["Date"] #adding date column back
-# new_test_df2["Date"]=pd.to_datetime(new_test_df2['Date'])#converting it to date-time
-# new_test_df2['YearMonth'] = new_test_df2['Date'].dt.to_period('M')#making year-month column
-# monthly_sales_test = new_test_df2.groupby('YearMonth')['Weekly_Sales'].mean() #grouping Year-month with weekly sales
+    elif selected_model == 'XGBoost Algorithm':
+        
+    
+        model.fit(x_train,y_train,eval_set=[(x_train,y_train),(x_test,y_test)],verbose=0)
+        xgb_pred1=model.predict(x_test)
+        xgb_pred2 = model.predict(new_test_df) #predicting weekly sales for 2013
 
-# plt.figure(figsize=(12, 8))
-# train_palette = {2010: 'blue', 2011: 'green', 2012: 'red'}
-# test_palette = {2012:'red',2013: 'purple'}
-# sns.lineplot(x="Month", y="Weekly_Sales", data=new_df2, hue="Year", 
-#              palette=train_palette, linewidth=2, errorbar=None)
-# sns.lineplot(x="Month", y="Weekly_Sales", data=new_test_df, hue="Year", 
-#              palette=test_palette, linewidth=3,linestyle='--', errorbar=None)
-# plt.plot([new_df2['Month'].iloc[-1], new_test_df['Month'].iloc[0]], 
-#          [monthly_sales_train["2012-10"], monthly_sales_test["2012-11"]], 
-#          color='red', linestyle='--', linewidth=3)
-# plt.title("Year wise sales(Actual and Prediction)",fontsize=20)
-# plt.ylabel("Average Weekly Sales")
-# plt.grid(axis="y", linestyle="--", alpha=0.7)
-# plt.show()
+        st.write("R2 score  :",round(r2_score(y_test, xgb_pred1),2))
+        st.write("RMSE:",round(math.sqrt(mean_squared_error(y_test, xgb_pred1)),2))
+        st.write("mean_absolute_error:",round(mean_absolute_error(y_test, xgb_pred1),2))
+
+        #feature importance bar chart
+        plt.barh(Features.columns, model.feature_importances_)
+        plt.title("Feautre Importance")
+        plt.xlabel("Importance")
+        plt.ylabel("Features")
+        st.pyplot()
+
+        st.subheader("MODEL PREDICTION")
+
+        st.write("Prediction has been done with XGBOOST Algorithm since data has been trained better with it.")
+    
+        new_test_df["Weekly_Sales"]=xgb_pred2 #adding weekly sales to new_test_df
+
+        #making extra column on train and test data to generate prediction plots
+        new_df3=new_df.copy()
+        new_df3['YearMonth'] = new_df3['Date'].dt.to_period('M') #making year-month column
+        monthly_sales_train = new_df3.groupby('YearMonth')['Weekly_Sales'].mean() #grouping Year-month with weekly sales
+
+        new_test_df2=new_test_df.copy()
+        new_test_df2["Date"]=test_data["Date"] #adding date column back
+        new_test_df2["Date"]=pd.to_datetime(new_test_df2['Date'])#converting it to date-time
+        new_test_df2['YearMonth'] = new_test_df2['Date'].dt.to_period('M')#making year-month column
+        monthly_sales_test = new_test_df2.groupby('YearMonth')['Weekly_Sales'].mean() #grouping Year-month with weekly sales
+        plt.figure(figsize=(12, 8))
+        train_palette = {2010: 'blue', 2011: 'green', 2012: 'red'}
+        test_palette = {2012:'red',2013: 'purple'}
+        sns.lineplot(x="Month", y="Weekly_Sales", data=new_df2, hue="Year", 
+                        palette=train_palette, linewidth=2, errorbar=None)
+        sns.lineplot(x="Month", y="Weekly_Sales", data=new_test_df, hue="Year", 
+                        palette=test_palette, linewidth=3,linestyle='--', errorbar=None)
+        plt.plot([new_df2['Month'].iloc[-1], new_test_df['Month'].iloc[0]], 
+                    [monthly_sales_train["2012-10"], monthly_sales_test["2012-11"]], 
+                    color='red', linestyle='--', linewidth=3)
+        plt.title("Year wise sales(Actual and Prediction)",fontsize=20)
+        plt.ylabel("Average Weekly Sales")
+        plt.grid(axis="y", linestyle="--", alpha=0.7)
+        st.pyplot()
+        st.write("Prediction has been made from Nov-2012 till July-2013, which has been showed by dashed lines")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
