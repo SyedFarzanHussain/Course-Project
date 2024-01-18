@@ -5,7 +5,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import math
 import seaborn as sns
-from matplotlib.cm import get_cmap
 import streamlit as st
 import plotly.express as px
 from sklearn import preprocessing
@@ -20,8 +19,8 @@ st.set_option('deprecation.showPyplotGlobalUse', False) #do not show warning whe
 st.title("WALMART SALES DATA ANALYSIS")
 
 st.subheader("ABOUT PROJECT")
-st.write("In this project, an analysis was conducted on the weekly sales data of 45 Walmart stores spanning the years 2010 to 2013. The initial phase involved exploratory data analysis to discern relationships among various features. Subsequently, sales forecasting techniques were employed to predict future values based on the insights gained from the exploratory analysis")
 
+st.write("In this project, weekly sales data from 45 Walmart stores spanning 2010 to 2013 underwent thorough analysis. The initial focus was on cleaning the data, addressing null and negative values. Subsequently, exploratory data analysis unveiled feature relationships, and sales forecasting techniques were applied to predict future values. The cleaning step ensured data reliability, paving the way for meaningful insights and accurate predictions in retail analytics")
 
 
 #unzipping dataset
@@ -67,11 +66,64 @@ new_test_df.isnull().sum()
 
 #lambda function to check the percentage of null values
 
-# null_percent_check=lambda x:print(f"The null percentage of {x} is {(new_train_df[x].isnull().sum()/new_train_df.shape[0])*100}")
-# null_percent_check("MarkDown1")
-# null_percent_check("MarkDown2")
-# null_percent_check("MarkDown3")
-# null_percent_check("MarkDown4")
+null_percent_check=lambda x:st.write(f"The null percentage of {x} is {round((new_train_df[x].isnull().sum()/new_train_df.shape[0]),2)*100}")
+
+def data_cleaning_techniques():
+         #initiating streamlit session
+        if 'show_data' not in st.session_state:
+            st.session_state.show_data = False
+
+        # Create a button to toggle the sidebar
+        toggle_sidebar = st.sidebar.button("Data Cleaning Techniques")
+
+        # Use the button state to toggle the sidebar
+        if toggle_sidebar:
+            # Toggle the show_matrix variable
+            st.session_state.show_data = not st.session_state.show_data
+            # Display the content if the button is pressed
+            if st.session_state.show_data:
+                st.subheader("NULL VALUE PERCENTAGE")
+                null_percent_check("MarkDown1")
+                null_percent_check("MarkDown2")
+                null_percent_check("MarkDown3")
+                null_percent_check("MarkDown4")
+
+                st.subheader("OUTLIERS")
+                st.write("The data set consist of negative values in Weekly Sales that are not possible mathematically.")
+                st.subheader("SOLUTION")
+                st.write("Dropped Markdown values column and removed negative sales data")               
+            
+        else:
+                # If button is not pressed, clear the sidebar content
+                st.empty()
+
+def side_bar_button(button_name,data_set,header_value):
+        #initiating streamlit session
+        if 'show_data' not in st.session_state:
+            st.session_state.show_data = False
+
+        # Create a button to toggle the sidebar
+        toggle_sidebar = st.sidebar.button(button_name)
+
+        # Use the button state to toggle the sidebar
+        if toggle_sidebar:
+            # Toggle the show_matrix variable
+            st.session_state.show_data = not st.session_state.show_data
+            # Display the correlation matrix plot if the button is pressed
+            if st.session_state.show_data:
+                st.subheader(header_value)
+                st.table(data_set)
+               
+            
+        else:
+                # If button is not pressed, clear the sidebar content
+                st.empty()
+
+st.sidebar.header("DATA SET")
+st.sidebar.subheader("Uncleaned Data")
+side_bar_button("Data Head",new_train_df.head(),"Data Head")
+side_bar_button("Data Description",new_train_df.describe().T,"Data Description")
+data_cleaning_techniques()
 
 
 #The null percentages are more than 60% and these are promotional offers so we can drop these columns.
@@ -118,58 +170,41 @@ new_test_df["Year"] = new_test_df["Date"].dt.year
 new_test_df['CPI'].fillna(new_test_df['CPI'].mean(),inplace=True)
 new_test_df['Unemployment'].fillna(new_test_df['Unemployment'].mean(),inplace=True)
 
-#initiating streamlit session
-
-if 'show_data' not in st.session_state:
-    st.session_state.show_data = False
-
-# Create a button to toggle the sidebar
-toggle_sidebar = st.sidebar.button('Data Head')
-
-# Use the button state to toggle the sidebar
-if toggle_sidebar:
-    # Toggle the show_matrix variable
-    st.session_state.show_data = not st.session_state.show_data
-    # Display the correlation matrix plot if the button is pressed
-    if st.session_state.show_data:
-        st.subheader("Data Head")
-        st.table(new_df.head())
-      
-else:
-        # If button is not pressed, clear the sidebar content
-        st.empty()
+st.sidebar.subheader("Cleaned Data")
+side_bar_button("Data head",new_train_df.head(),"Data Head")
+side_bar_button("Data description",new_train_df.describe().T,"Data Description")
 
 st.subheader("FEATURE UNDERSTANDING")
 st.write("Several features need to be plotted to comprehend their interrelationships.")
 
 #feature understanding 
+def correlation_matrix():
+        # Initialize session state
+        if 'show_matrix' not in st.session_state:
+            st.session_state.show_matrix = False
 
-# Initialize session state
-if 'show_matrix' not in st.session_state:
-    st.session_state.show_matrix = False
+        # Create a button to toggle the sidebar
+        toggle_sidebar = st.sidebar.button('Feature Correlation')
 
-# Create a button to toggle the sidebar
-toggle_sidebar = st.sidebar.button('Feature Correlation')
+        # Use the button state to toggle the sidebar
+        if toggle_sidebar:
+            # Toggle the show_matrix variable
+            st.session_state.show_matrix = not st.session_state.show_matrix
+            # Display the correlation matrix plot if the button is pressed
+            if st.session_state.show_matrix:
+                # Plotting Correlation Matrix
+                corr_data = new_df.drop(columns=["Date", "Type"]).corr()
 
-# Use the button state to toggle the sidebar
-if toggle_sidebar:
-    # Toggle the show_matrix variable
-    st.session_state.show_matrix = not st.session_state.show_matrix
-    # Display the correlation matrix plot if the button is pressed
-    if st.session_state.show_matrix:
-        # Plotting Correlation Matrix
-        corr_data = new_df.drop(columns=["Date", "Type"]).corr()
+                # Create a Matplotlib plot
+                plt.figure(figsize=(10, 8))
+                sns.heatmap(corr_data, annot=True, fmt=".2f")
+                plt.title("Correlation Matrix")
 
-        # Create a Matplotlib plot
-        plt.figure(figsize=(10, 8))
-        sns.heatmap(corr_data, annot=True, fmt=".2f")
-        plt.title("Correlation Matrix")
-
-        # Display the plot in the sidebar
-        st.pyplot()
-else:
-        # If button is not pressed, clear the sidebar content
-        st.empty()
+                # Display the plot in the sidebar
+                st.pyplot()
+        else:
+                # If button is not pressed, clear the sidebar content
+                st.empty()
    
     
 def distribution_store_type():
@@ -297,7 +332,7 @@ def plot_holiday_sales():
     sunburst_plot.update_layout(title_text="Holidays vs Non-Holidays: Sales by Store Type")
     st.plotly_chart(sunburst_plot)
 
- 
+correlation_matrix() #making correltion plot button in side bar 
 
 # Create a dropdown to select the plot
 selected_plot = st.selectbox('Select Plot', ['Distribution of Store Type', 'Store Count', 'Store Size', 'Yearly Fuel Prices',
@@ -385,8 +420,8 @@ if model_button:
         rf_pred=rf_model.predict(x_test)
 
         st.write("R2 score  :",round(r2_score(y_test, rf_pred),2))
-        st.write("RMSE:",round(math.sqrt(mean_squared_error(y_test, rf_pred)),2))
-        st.write("mean_absolute_error:",round(mean_absolute_error(y_test, rf_pred),2))
+        st.write("Root Mean Sqaure Error:",round(math.sqrt(mean_squared_error(y_test, rf_pred)),2))
+        st.write("Mean Absolute Error:",round(mean_absolute_error(y_test, rf_pred),2))
         
         #feature importance bar chart
         plt.barh(Features.columns, rf_model.feature_importances_)
@@ -403,8 +438,8 @@ if model_button:
         xgb_pred2 = model.predict(new_test_df) #predicting weekly sales for 2013
 
         st.write("R2 score  :",round(r2_score(y_test, xgb_pred1),2))
-        st.write("RMSE:",round(math.sqrt(mean_squared_error(y_test, xgb_pred1)),2))
-        st.write("mean_absolute_error:",round(mean_absolute_error(y_test, xgb_pred1),2))
+        st.write("Root Mean Sqaure Error:",round(math.sqrt(mean_squared_error(y_test, xgb_pred1)),2))
+        st.write("Mean Absolute Error:",round(mean_absolute_error(y_test, xgb_pred1),2))
 
         #feature importance bar chart
         plt.barh(Features.columns, model.feature_importances_)
