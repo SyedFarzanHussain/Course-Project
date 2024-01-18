@@ -263,7 +263,7 @@ def plot_unemployement():
     st.pyplot()
     st.write("The line plot depicts the unemployment rates across different departments. It is evident from the plot that only three departments—12, 28, and 38—exhibit notably high average unemployment rates, while the remaining departments generally maintain low rates.")
 
-def plot_year_sales():
+def plot_year_sales_and_CPI():
 
     #line plot for year wise sales
     plt.figure(figsize=(12, 8))
@@ -273,6 +273,15 @@ def plot_year_sales():
     plt.grid(axis="y", linestyle="--", alpha=0.7)
     st.pyplot()
     st.write("The graph displays the monthly average sales for the years 2010-2012. It is evident that the sales pattern remains consistent across all three years, with some variations. Sales typically commence at around 14,000 in January, experiencing a rise to approximately 16,000 in February. Subsequently, a downward trend is observed in March, reaching around 15,500, followed by an upward trajectory until June, surpassing 16,000. Post-June, a declining sales trend persists for the next four months. Notably, there is a substantial surge in sales during the winter season, particularly in November and December, reaching levels around 20,000.")
+
+    #CPI line plot
+    plt.figure(figsize=(12, 8))
+    sns.lineplot(x="Month",y="CPI",data=new_df,hue="Year",palette="deep")
+    plt.title("Year wise CPI",fontsize=20)
+    plt.ylabel("CPI")
+    plt.grid(axis="y", linestyle="--", alpha=0.7)
+    st.pyplot()
+    st.write("The Consumer Price Index (CPI) is a measure reflecting the average change in prices paid by urban consumers for a specified basket of goods and services over time. The plotted data reveals a consistent increase in the CPI from 2010 to 2012, indicating a period of inflation. Notably, this inflationary trend appears to impact the purchasing power of individuals. The sales data illustrates that, despite the constant expenditure of certain dollars, individuals can buy fewer items in the subsequent year. For instance, if an individual initially purchased 10 items for $100 in a week, the data suggests that in the following year, they would only be able to obtain 8 items for the same amount. This implies a reduction in purchasing power due to the rising prices reflected in the CPI.")
 
 def plot_holiday_sales():
 
@@ -292,7 +301,7 @@ def plot_holiday_sales():
 
 # Create a dropdown to select the plot
 selected_plot = st.selectbox('Select Plot', ['Distribution of Store Type', 'Store Count', 'Store Size', 'Yearly Fuel Prices',
-                                             'Weekly Sales', 'Unemployment Rate', 'Year Wise Sales', 'Holiday Sales'])
+                                             'Weekly Sales', 'Unemployment Rate', 'Year Wise Sales and CPI', 'Holiday Sales'])
 
 plot_button1 = st.button('Plot')
 
@@ -310,16 +319,13 @@ if plot_button1:
         plot_weeklysales()
     elif selected_plot == 'Unemployment Rate':
         plot_unemployement()
-    elif selected_plot == 'Year Wise Sales':
-        plot_year_sales()
+    elif selected_plot == 'Year Wise Sales and CPI':
+        plot_year_sales_and_CPI()
     elif selected_plot == 'Holiday Sales':
         plot_holiday_sales()
 
 
 st.subheader("MODEL TRAINING")
-
-
-
 
 
 #Machine Learning part
