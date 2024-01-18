@@ -188,6 +188,8 @@ def distribution_store_type():
     # Adjust layout to prevent clipping of titles
     plt.tight_layout()
     st.pyplot()
+    st.write("It can be seen from the plots that stores are distributed in three categories: 'A', 'B', 'C'. Numerically speaking, Type A has the largest distribution, accounting for approximately 51%. It is followed by Type B, which constitutes around 39%, and Type C is the smallest category, representing only 1/10th of the overall distribution")
+    st.write("Similarly, the observed trends extend to the sizes of the stores. Type A stores are characterized by the largest sizes,followed by Type B stores, with Type C stores being the smallest in size.")
 
 def plot_store_count():
      
@@ -196,6 +198,7 @@ def plot_store_count():
     Store_chart.set_xlabel("TYPE")
     Store_chart.set_ylabel("COUNT")
     st.pyplot()
+    st.write("The bar plot reveals that Type A has the highest number of stores, surpassing two hundred thousand. In contrast, Type B follows with approximately one hundred and fifty thousand stores, while Type C has the smallest count, hovering around fifty thousand.")
 
 
 def plot_store_size():
@@ -210,8 +213,10 @@ def plot_store_size():
     legend_handles = [plt.Rectangle((0, 0), 1, 1, color=color) for color in legend_labels.keys()] #making rectangle for store stype according to color
 
     plt.legend(legend_handles, legend_labels.values(), title='Store Type', loc='upper right')
+    plt.ylabel("Size")
     plt.title("Size of Stores")
     st.pyplot()
+    st.write("The bar chart illustrates the allocation of 45 store types among three categories. Type A stores dominate, followed by Type B and then Type C")
 
 def plot_yearly_fuel():
 
@@ -219,30 +224,32 @@ def plot_yearly_fuel():
     sns.barplot(x="Year", y="Fuel_Price",data=new_df)
     plt.title("Yearly Fuel Prices")
     st.pyplot()
+    st.write("It is evident that the fuel price has consistently risen over the years. Notably, there was a significant increase from 2010 to 2011, although there was only a slight rise in prices in 2012.")
 
 
 def plot_weeklysales():
-    fig2, axs1 = plt.subplots(1, 2, figsize=(18, 6))
 
+    plt.figure(figsize=(15,8))
     # Plotting bar plot for sales on each store
     sns.barplot(x="Store", y="Weekly_Sales", data=new_df, hue="Type",
-                order=new_df.groupby("Store")["Weekly_Sales"].mean().sort_values(ascending=False).index,
-                ax=axs[0])
-    axs1[0].set_title("Sales on Each Store")
-    axs1[0].grid(axis="y", linestyle="--", alpha=0.7)
-    axs1[0].set_ylabel("Average Weekly Sales")
-    axs1[0].tick_params(axis='x', rotation=45)
-
+                order=new_df.groupby("Store")["Weekly_Sales"].mean().sort_values(ascending=False).index)
+    plt.title("Sales on Each Store")
+    plt.grid(axis="y", linestyle="--", alpha=0.7)
+    plt.ylabel("Average Weekly Sales")
+    #plt.tick_params(axis='x', rotation=90)
+    st.pyplot()
+    st.write("The graph indicates that Type A stores lead in sales, attributed to their larger capacity, as evident from preceding graphs. Similarly, Type B stores, with a smaller capacity than Type A, exhibit lower sales in comparison,except for store number 10 and 23, which have been competitive with Type A stores. Lastly, Type C stores, being the smallest in size, recorded the least sales overall.") 
     # Plotting line plot for sales by each department
-    sns.lineplot(x="Dept", y="Weekly_Sales", data=new_df, ax=axs[1])
-    axs1[1].set_title("Sales by Departments")
-    axs1[1].set_xticks(range(min(new_df['Dept']), max(new_df['Dept']) + 1, 4))
-    axs1[1].set_xticklabels(range(min(new_df['Dept']), max(new_df['Dept']) + 1, 4), rotation=45)
-    axs1[1].set_ylabel("Average Weekly Sales")
-    axs1[1].grid(axis="x", linestyle="--", alpha=0.7)
-    
+    plt.figure(figsize=(15,8))
+    sns.barplot(x="Dept", y="Weekly_Sales", data=new_df)
+    plt.title("Sales by Departments")
+    #plt.xticks(range(min(new_df['Dept']), max(new_df['Dept']) + 4))
+    plt.ylabel("Average Weekly Sales")
+    plt.tick_params(axis='x', rotation=90)
+    plt.grid(axis="x", linestyle="--", alpha=0.7)
     plt.tight_layout()
     st.pyplot()
+    st.write("The graph reveals that eight departments exhibit average weekly sales exceeding 40,000, while the remaining departments have sales below this threshold. Additionally, there are few departments where the sales are zero.")
 
 def plot_unemployement():
 
@@ -254,6 +261,7 @@ def plot_unemployement():
     plt.grid(axis="x", linestyle="--", alpha=0.7)
     plt.xticks(new_df['Store'].unique())
     st.pyplot()
+    st.write("The line plot depicts the unemployment rates across different departments. It is evident from the plot that only three departments—12, 28, and 38—exhibit notably high average unemployment rates, while the remaining departments generally maintain low rates.")
 
 def plot_year_sales():
 
@@ -264,6 +272,7 @@ def plot_year_sales():
     plt.ylabel("Average Weekly Sales")
     plt.grid(axis="y", linestyle="--", alpha=0.7)
     st.pyplot()
+    st.write("The graph displays the monthly average sales for the years 2010-2012. It is evident that the sales pattern remains consistent across all three years, with some variations. Sales typically commence at around 14,000 in January, experiencing a rise to approximately 16,000 in February. Subsequently, a downward trend is observed in March, reaching around 15,500, followed by an upward trajectory until June, surpassing 16,000. Post-June, a declining sales trend persists for the next four months. Notably, there is a substantial surge in sales during the winter season, particularly in November and December, reaching levels around 20,000.")
 
 def plot_holiday_sales():
 
@@ -272,6 +281,7 @@ def plot_holiday_sales():
     sns.boxplot(x="IsHoliday",y="Weekly_Sales",data=new_df)
     plt.title("Holidays vs Non-Holidays",fontsize=20)
     st.pyplot()
+    st.write("The box plot indicates that sales on holidays exhibit significant outliers compared to non-holidays. This suggests that sales are more challenging to predict during holiday periods, as they demonstrate a higher degree of variability and are less constrained within the typical range observed on non-holidays.")
     
     #sunburtst plot for distribution of sales on holdidays and non-holiddays
     sunburst_plot= px.sunburst(new_df, path=['IsHoliday', 'Type'], values='Weekly_Sales')
