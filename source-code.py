@@ -12,6 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score,mean_squared_error,mean_absolute_error
 from xgboost import XGBRegressor
 from sklearn.ensemble import RandomForestRegressor
+import joblib
 
 st.set_option('deprecation.showPyplotGlobalUse', False) #do not show warning when plotting on streamlit
 
@@ -74,7 +75,7 @@ def data_cleaning_techniques():
             st.session_state.show_data = False
 
         # Create a button to toggle the sidebar
-        toggle_sidebar = st.sidebar.button("Data Cleaning Techniques")
+        toggle_sidebar = st.sidebar.button("Cleaning Techniques")
 
         # Use the button state to toggle the sidebar
         if toggle_sidebar:
@@ -395,17 +396,20 @@ Target=new_df2["Weekly_Sales"]
 #separting training and testing set
 x_train, x_test, y_train, y_test= train_test_split(Features, Target, test_size= 0.2, random_state=2)
 
- #using random forest algorithm
-rf_model=RandomForestRegressor(n_estimators=50, #no of tress
-    random_state=0,
-    n_jobs=-1,#utilizaing available resources
-    max_depth=50, #maximum dept of each tree
-    max_features='sqrt', #maximum number of features each tree is allowed to use 
-    min_samples_split=5 #minimum samples required for a split      
-)
+# using random forest algorithm
+# rf_model_0=RandomForestRegressor(n_estimators=30,random_state=0,max_depth=30,n_jobs=-1, max_features='sqrt',min_samples_split=20)
+# rf_model_1=rf_model_0.fit(x_train,y_train)
+# #saving model
+# joblib.dump(rf_model_1, "random_forest_model.joblib")
+rf_model=joblib.load("random_forest_model.joblib") #loading model
+
 
 #applying XGBoost Algorithm
-model = XGBRegressor(early_stopping_rounds=50)
+# model_0 = XGBRegressor(early_stopping_rounds=50)
+# model_1=model_0.fit(x_train,y_train,eval_set=[(x_train,y_train),(x_test,y_test)],verbose=0)
+# #saving model
+# joblib.dump(model_1, "XGBoost_model.joblib")
+model=joblib.load("XGBoost_model.joblib")  #loading model
 
 # Create a dropdown to select the plot
 selected_model = st.selectbox('Select Model', ["Random Forest Algorithm","XGBoost Algorithm"])
@@ -415,8 +419,8 @@ model_button = st.button('Train')
 if model_button:
     if selected_model == 'Random Forest Algorithm':
        
-        rf_model.fit(x_train,y_train)
 
+        #rf_model.fit(x_train,y_train)
         rf_pred=rf_model.predict(x_test)
 
         st.write("R2 score  :",round(r2_score(y_test, rf_pred),2))
@@ -429,11 +433,11 @@ if model_button:
         plt.xlabel("Importance")
         plt.ylabel("Features")
         st.pyplot()
+        st.write("It is not the right model for this data now choose XGBoost Model")
 
     elif selected_model == 'XGBoost Algorithm':
         
     
-        model.fit(x_train,y_train,eval_set=[(x_train,y_train),(x_test,y_test)],verbose=0)
         xgb_pred1=model.predict(x_test)
         xgb_pred2 = model.predict(new_test_df) #predicting weekly sales for 2013
 
@@ -479,6 +483,28 @@ if model_button:
         plt.grid(axis="y", linestyle="--", alpha=0.7)
         st.pyplot()
         st.write("Prediction has been made from Nov-2012 till July-2013, which has been showed by dashed lines")
+st.subheader("Do you want to make your own prediction?")
+pred_store=st.number_input("Store")
+st.write("value ranges from 1-45")
+pred_dept=st.number_input("Dept")
+st.write("value ranges from 1-98")
+pred_is_holiday=st.checkbox("Is Holiday")
+pred_temperature=st.number_input("Temperature")
+pred_Fuel_Price=st.number_input("Fuel_Price")
+pred_CPI=st.number_input("CPI")
+pred_Unemployment=st.number_input("Unemployment")
+pred_Type=st.selectbox("Tyep",[0,1,2])
+st.write("A=0,B=1,C=2")
+pred_size = st.number_input("Size")
+pred_week = st.number_input("Week")
+pred_month = st.number_input("Month")
+pred_year = st.number_input("Year")
+user_pred=model.predict(np.array([[pred_store,pred_dept,pred_is_holiday,pred_temperature,pred_Fuel_Price,pred_CPI,pred_Unemployment,pred_Type,pred_size,pred_week,pred_month,pred_year]]))
+st.write("Prediction",user_pred)
+
+
+
+
 
 
 
