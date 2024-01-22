@@ -110,10 +110,11 @@ def side_bar_button(button_name,data_set,header_value):
         if toggle_sidebar:
             # Toggle the show_matrix variable
             st.session_state.show_data = not st.session_state.show_data
-            # Display the correlation matrix plot if the button is pressed
+            # Display the content plot if the button is pressed
             if st.session_state.show_data:
                 st.subheader(header_value)
                 st.table(data_set)
+                
                
             
         else:
@@ -172,8 +173,8 @@ new_test_df['CPI'].fillna(new_test_df['CPI'].mean(),inplace=True)
 new_test_df['Unemployment'].fillna(new_test_df['Unemployment'].mean(),inplace=True)
 
 st.sidebar.subheader("Cleaned Data")
-side_bar_button("Data head",new_train_df.head(),"Data Head")
-side_bar_button("Data description",new_train_df.describe().T,"Data Description")
+side_bar_button("Data head",new_df.head(),"Data Head")
+side_bar_button("Data description",new_df.describe().T,"Data Description")
 
 st.subheader("FEATURE UNDERSTANDING")
 st.write("Several features need to be plotted to comprehend their interrelationships.")
@@ -255,10 +256,11 @@ def plot_store_size():
     st.write("The bar chart illustrates the allocation of 45 store types among three categories. Type A stores dominate, followed by Type B and then Type C")
 
 def plot_yearly_fuel():
-
+    
     #bar plot to check fuel prices over the years
     sns.barplot(x="Year", y="Fuel_Price",data=new_df)
-    plt.title("Yearly Fuel Prices")
+    plt.ylabel("Fuel Price ($)")
+    plt.title("Yearly Average Fuel Prices")
     st.pyplot()
     st.write("It is evident that the fuel price has consistently risen over the years. Notably, there was a significant increase from 2010 to 2011, although there was only a slight rise in prices in 2012.")
 
@@ -268,10 +270,10 @@ def plot_weeklysales():
     plt.figure(figsize=(15,8))
     # Plotting bar plot for sales on each store
     sns.barplot(x="Store", y="Weekly_Sales", data=new_df, hue="Type",
-                order=new_df.groupby("Store")["Weekly_Sales"].mean().sort_values(ascending=False).index)
+                order=new_df.groupby("Store")["Weekly_Sales"].mean().sort_values(ascending=False).index) 
     plt.title("Sales on Each Store")
     plt.grid(axis="y", linestyle="--", alpha=0.7)
-    plt.ylabel("Average Weekly Sales")
+    plt.ylabel("Average Weekly Sales($)")
     #plt.tick_params(axis='x', rotation=90)
     st.pyplot()
     st.write("The graph indicates that Type A stores lead in sales, attributed to their larger capacity, as evident from preceding graphs. Similarly, Type B stores, with a smaller capacity than Type A, exhibit lower sales in comparison,except for store number 10 and 23, which have been competitive with Type A stores. Lastly, Type C stores, being the smallest in size, recorded the least sales overall.") 
@@ -280,7 +282,7 @@ def plot_weeklysales():
     sns.barplot(x="Dept", y="Weekly_Sales", data=new_df)
     plt.title("Sales by Departments")
     #plt.xticks(range(min(new_df['Dept']), max(new_df['Dept']) + 4))
-    plt.ylabel("Average Weekly Sales")
+    plt.ylabel("Average Weekly Sales($)")
     plt.tick_params(axis='x', rotation=90)
     plt.grid(axis="x", linestyle="--", alpha=0.7)
     plt.tight_layout()
@@ -304,8 +306,8 @@ def plot_year_sales_and_CPI():
     #line plot for year wise sales
     plt.figure(figsize=(12, 8))
     sns.lineplot(x="Month",y="Weekly_Sales",data=new_df,hue="Year",palette="deep")
-    plt.title("Year wise sales",fontsize=20)
-    plt.ylabel("Average Weekly Sales")
+    plt.title("Yearly Sales",fontsize=20)
+    plt.ylabel("Average Weekly Sales($)")
     plt.grid(axis="y", linestyle="--", alpha=0.7)
     st.pyplot()
     st.write("The graph displays the monthly average sales for the years 2010-2012. It is evident that the sales pattern remains consistent across all three years, with some variations. Sales typically commence at around 14,000 in January, experiencing a rise to approximately 16,000 in February. Subsequently, a downward trend is observed in March, reaching around 15,500, followed by an upward trajectory until June, surpassing 16,000. Post-June, a declining sales trend persists for the next four months. Notably, there is a substantial surge in sales during the winter season, particularly in November and December, reaching levels around 20,000.")
@@ -313,7 +315,7 @@ def plot_year_sales_and_CPI():
     #CPI line plot
     plt.figure(figsize=(12, 8))
     sns.lineplot(x="Month",y="CPI",data=new_df,hue="Year",palette="deep")
-    plt.title("Year wise CPI",fontsize=20)
+    plt.title("Yearly Consumer Price Index (CPI)",fontsize=20)
     plt.ylabel("CPI")
     plt.grid(axis="y", linestyle="--", alpha=0.7)
     st.pyplot()
@@ -337,10 +339,11 @@ correlation_matrix() #making correltion plot button in side bar
 
 # Create a dropdown to select the plot
 selected_plot = st.selectbox('Select Plot', ['Distribution of Store Type', 'Store Count', 'Store Size', 'Yearly Fuel Prices',
-                                             'Weekly Sales', 'Unemployment Rate', 'Year Wise Sales and CPI', 'Holiday Sales'])
+                                             'Weekly Sales', 'Unemployment Rate', 'Yearly Sales and CPI', 'Holiday Sales'])
 
 plot_button1 = st.button('Plot')
 
+#display plots on the basis of selection
 if plot_button1:
      
     if selected_plot == 'Distribution of Store Type':
@@ -355,7 +358,7 @@ if plot_button1:
         plot_weeklysales()
     elif selected_plot == 'Unemployment Rate':
         plot_unemployement()
-    elif selected_plot == 'Year Wise Sales and CPI':
+    elif selected_plot == 'Yearly Sales and CPI':
         plot_year_sales_and_CPI()
     elif selected_plot == 'Holiday Sales':
         plot_holiday_sales()
@@ -475,7 +478,7 @@ if model_button:
                         palette=train_palette, linewidth=2, errorbar=None)
         sns.lineplot(x="Month", y="Weekly_Sales", data=new_test_df, hue="Year", 
                         palette=test_palette, linewidth=3,linestyle='--', errorbar=None)
-        plt.plot([new_df2['Month'].iloc[-1], new_test_df['Month'].iloc[0]], 
+        plt.plot([new_df2['Month'].iloc[-1], new_test_df['Month'].iloc[0]], #joining line to show continous plot by using last and one first value
                     [monthly_sales_train["2012-10"], monthly_sales_test["2012-11"]], 
                     color='red', linestyle='--', linewidth=3)
         plt.title("Year wise sales(Actual and Prediction)",fontsize=20)
@@ -483,6 +486,7 @@ if model_button:
         plt.grid(axis="y", linestyle="--", alpha=0.7)
         st.pyplot()
         st.write("Prediction has been made from Nov-2012 till July-2013, which has been showed by dashed lines")
+# user defined prediction code
 st.subheader("Do you want to make your own prediction?")
 pred_store=st.number_input("Store")
 st.write("value ranges from 1-45")
