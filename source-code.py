@@ -14,7 +14,7 @@ from xgboost import XGBRegressor
 from sklearn.ensemble import RandomForestRegressor
 import joblib
 
-st.set_option('deprecation.showPyplotGlobalUse', False) #do not show warning when plotting on streamlit
+#st.set_option('deprecation.showPyplotGlobalUse', False) #do not show warning when plotting on streamlit
 
 
 st.title("WALMART SALES DATA ANALYSIS")
